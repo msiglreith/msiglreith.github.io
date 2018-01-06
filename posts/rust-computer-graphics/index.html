@@ -61,11 +61,11 @@
   <section id="js-article" class="p-article__body">
     
 
-<p>In the post I want to give a short overview about a part of the current Rust ecosystem regarding Computer Graphics and discuss a few concepts and ideas which could make Rust more interesting in this area.</p>
+<p>In this post I want to give a short overview about a part of the current Rust ecosystem regarding Computer Graphics and discuss a few concepts and ideas which could make Rust more interesting for this field.</p>
 
 <h2 id="overview">Overview</h2>
 
-<p>While Computer Graphics is often associated with 3D rendering (real-time or offline) it covers several subfields, including: geometric modeling, animation, rendering and a few more.</p>
+<p>While Computer Graphics is often associated with 3D rendering (real-time or offline), it covers several subfields including: geometric modeling, animation, rendering and a few more.</p>
 
 <p>In particular, real-time 3D rendering is the most healthy subfield, mostly driven by the effort of the gamedev community, resulting in the creation of quite a few different libraries:</p>
 
@@ -73,61 +73,66 @@
 <li><code>winit</code>: de-facto standard Rust library for window handling</li>
 <li><code>lyon</code>: 2D graphics rendering library with path tessellation</li>
 <li><code>gfx-rs</code>: focusing on abstracting the open 3D graphic APIs</li>
-<li><code>glium</code> and <code>luminance</code>: Wrapper libraries for OpenGL</li>
-<li><code>vulkano</code>: Higher level Vulkan API wrapper</li>
-<li><code>amethyst</code> and <code>three-rs</code>: Higher level game engines or libraries including 3D graphics rendering</li>
+<li><code>glium</code> and <code>luminance</code>: wrapper libraries for OpenGL</li>
+<li><code>vulkano</code>: higher level Vulkan API wrapper</li>
+<li><code>amethyst</code> and <code>three-rs</code>: higher level game engines or libraries including 3D graphics rendering</li>
 </ul>
 
 <p>Overall, the ecosystem here is quite mature, even though the mentioned libraries haven&rsquo;t reached stability yet.
 The other fields haven&rsquo;t received that much love so far, but that&rsquo;s not unique to Rust. For rigid-body simulations, there are currently two competitors:</p>
 
 <ul>
-<li><code>npyhsics</code>: Quite mature physics library built upon <code>nalgebra</code></li>
-<li><code>rhusics</code>: More recent library using <code>collision-rs</code> under the hood and integrated into the amethyst engine</li>
+<li><code>npyhsics</code>: quite mature physics library built upon <code>nalgebra</code></li>
+<li><code>rhusics</code>: more recent library using <code>collision-rs</code> under the hood and integrated into the amethyst engine</li>
 </ul>
 
 <p>Besides the (great!) languages features offered by Rust itself, how could the current ecosystem be more attractive for the Computer Graphics community?</p>
 
 <h3 id="1-math-libraries">1. Math libraries</h3>
 
-<p>Well, the basis of Computer Graphics is math, so we need to improve the current math libs, duh!
+<p>The basis of Computer Graphics is math, so we need to improve the current math libs, heh!
 We currently have access to two great libraries (among others): <code>cgmath</code> and <code>nalgebra</code>. Both cover slightly two different use-cases and have a place in the ecosystem:
-<code>cgmath</code> has a smaller API surface and focuses on the needs of real-time rendering, while <code>nalgebra</code> provides a more generic and richer interface.</p>
+<code>cgmath</code> has a smaller API surface and focuses on the needs of real-time rendering, while <code>nalgebra</code> provides a more generic and richer interface for linear algebra.</p>
 
-<p>Looking at kinematic, rigid-body or fluid animation, it&rsquo;s often desired to write the interface either generic over the dimension or generic over functionality (implements a trait). Quite a few problems can be implemented for multiple dimensions with one algorithm like particle based fluid simulations. It&rsquo;s a large benefit to being able to test and visualize your implementation in lower dimensions (2D). <code>nalgebra</code> allows to write dimensional genericity via <code>MatrixMN</code> and <code>VectorN</code> with the <code>generic_array</code> crate, but this will result often in long <code>where</code>-clauses and can be quite annoying to handle.</p>
+<p>Looking at kinematic, rigid-body or fluid animation, it&rsquo;s often desired to write the API interface generic over the dimension or generic over functionality (implements a trait). Quite a few algorithms can be implemented for multiple dimensions like particle based fluid simulations. There is a large benefit to be able to test and visualize your implementation in lower dimensions (2D) and run for final simulation in 3D without the overhead of porting pieces over to 3D, possible introducing bugs. <code>nalgebra</code> allows to write dimensional genericity via <code>MatrixMN</code> and <code>VectorN</code> with the <code>generic_array</code> crate, but this will result often in long <code>where</code>-clauses and can be quite annoying to deal with.</p>
 
-<p>Therefore, the ecosystem could greatly benefit from the implementation of <strong>const generics</strong>!</p>
+<p>Therefore, the ecosystem could greatly benefit from the (upcoming) implementation of <a href="https://github.com/rust-lang/rfcs/blob/master/text/2000-const-generics.md"><strong>const generics</strong></a>!</p>
 
 <p><img src="/ocean.png" alt="alt text" /></p>
 
 <h3 id="2-rust-shading-language">2. Rust Shading Language</h3>
 
-<p>A long standing dream, writing your shaders in Rust! Why..?</p>
+<p>A long standing dream, writing your shaders in Rust! But, actually why..?</p>
 
 <ul>
 <li>Make use of programming language features like <code>trait</code></li>
-<li>Build up a <em>reusable</em> rust shader crate library</li>
-<li>Optimized shader code via the LLVM pipeline</li>
-<li>Shared shader interface between device and host (structs, location values, etc.)</li>
+<li>Build up a collection of <em>reusable</em> Rust shader crates</li>
+<li>Possible optimization of shader code via the LLVM pipeline</li>
+<li>Shared shader interface between device and host (structs, location values, etc.). Defining a struct once for shader and host code can reduce bookkeeping or remove reflection costs.</li>
 </ul>
 
-<p>But wait, there is more! With the current convergence of shading models (e.g BRDFs) between real-time rasterization and raytracing, it would be tempting to share common functions <strong>between</strong> both, shaders and raytracing kernels, allowing for easier validation tests of approximation models and further integration of raytracers the generate reference images.</p>
+<p>But wait, there is more! With the current convergence of shading models (e.g BRDFs) between real-time rasterization and raytracing, it would be tempting to share common functions <strong>between both</strong>, shaders and raytracing kernels, allowing for easier validation tests of approximation models and further integration of raytracers to generate reference images. A CPU rasterizer could be easily built with Rust shaders, allowing to improve reference tests.</p>
 
 <p>How could this be implemented?
 With the release of SPIR-V alongside Vulkan, a new Rust backend could be implemented for emitting SPIR-V code after finding a valid language subset, which can be supported + additional features like texture and shader entry points. During the normal Rust compilation process, code is transformed into multiple different IRs:</p>
 
-<pre><code>AST -&gt; HIR -&gt; MIR -&gt; LLVM IR -&gt; Machine Code
-</code></pre>
+<p><center>
+<code>
+AST -&gt; HIR -&gt; MIR -&gt; LLVM IR -&gt; Machine Code
+</code>
+</center></p>
 
 <p>At each point a translator into SPIR-V could be integrated, but LLVM IR to SPIR-V might be the most future-proof approach, in the hope of an upcoming LLVM SPIR-V backend and the light of the OpenCL-SPIRV compiler project <code>clspv</code>.</p>
+
+<p>There are a few projects, tackling this problem already, but nothing production ready yet!</p>
 
 <p><img src="/scifi.png" alt="alt text" /></p>
 
 <h3 id="3-dsls-and-meta-staging">3. DSLs and Meta-staging</h3>
 
-<p>Computer Graphics is an very computational intensive field, which algorithms run on different platforms, requiring different optimization mechanism. On the other end are library users, which aim at optimizing their resources. The library API will be the bottleneck at which hardware-abstraction and user intent will meet. Therefore, <em>domain-specific languages</em> are developed to broaden the bottleneck and allow to preserve the semantic meaning of the user code better. <code>ebb</code>, <code>Simit</code> and <code>Spire</code> are examples of recent DSLs. On of the core features which enables writing DSLs is <em>meta-staging</em>, where the code runs through multiple compilation stages, which may generate new code. An interesting approach for adding meta-staging functionality to languages is called <strong>language virtualization</strong>:</p>
+<p>Computer Graphics is an very computational intensive field, which algorithms running on different platforms, requiring different optimization mechanism. On the other end are library users, which aim at optimizing their resources. The library API will be the bottleneck at which hardware-abstraction and user intentions will meet. Therefore, <em>domain-specific languages</em> are developed to broaden the bottleneck and allow to preserve the semantic meaning of the user code better by providing a more expressive API. <a href="http://ebblang.org/"><code>ebb</code></a>, <a href="http://simit-lang.org/"><code>Simit</code></a> and <a href="http://graphics.cs.cmu.edu/projects/spire/"><code>Spire</code></a> are examples of recent DSLs in the Computer Graphics area. On of the core features which enables writing DSLs is <em>meta-staging</em>, where the code runs through multiple compilation stages, which may generate new code. An interesting approach for adding meta-staging functionality to languages is called <strong>language virtualization</strong>:</p>
 
-<p>The <code>Scala LMS</code> library enhances the Scala language with meta-staging functionalities by &lsquo;virtualizing&rsquo; language features. It exposes interfaces for overriding the behavior of language features like</p>
+<p>The <a href="https://scala-lms.github.io/"><code>Scala LMS</code></a> library enhances the Scala language with meta-staging functionalities by &lsquo;virtualizing&rsquo; language features. It exposes interfaces for overriding the behavior of language features like</p>
 
 <pre><code>if $cond {
     ..
@@ -138,23 +143,48 @@ With the release of SPIR-V alongside Vulkan, a new Rust backend could be impleme
 
 <p>by rewriting the staging code as function calls:</p>
 
-<pre><code class="language-ifThenElse(...)```">
-This alone wouldn't be very useful and only shows it's true strength by introducing a `Rep&lt;T&gt;` type, which overrides the default language construct implementations.
-The difference between `Rep&lt;T&gt;` and `T` is the time at which these will be evaluated. Values of type `T` will be evaluated during the staging process (compile-time). `Rep&lt;T&gt;` will be translated to a corresponding value `T` at compile time and evaluated at run-time, allowing us to generate Rust code from Rust code!
-
-During the staging process a graph representation of the generated code will be built, which can be translated into platform specific code. Additionally, it should be possible to define new representation types, containing domain specific information, allowing for domain specific transformation steps on the graph representation.
-
-Let's build up a theoretical DSL for optimizing BRDF calculation:
-
+<pre><code>ifThenElse(...)
 </code></pre>
 
-<p>```</p>
+<p>This alone wouldn&rsquo;t be very useful and only shows it&rsquo;s true strength by introducing a <code>Rep&lt;T&gt;</code> type, which overrides the default language construct implementations.
+The difference between <code>Rep&lt;T&gt;</code> and <code>T</code> is the time at which these will be evaluated. Values of type <code>T</code> will be evaluated during the staging process (compile-time). <code>Rep&lt;T&gt;</code> will be translated to a corresponding value <code>T</code> at compile time and evaluated at run-time, allowing us to generate Rust code from Rust code!</p>
+
+<p>During the staging process a graph representation of the generated code will be built, which can be translated into platform specific code. Additionally, it should be possible to define new representation types, containing domain specific information, allowing for domain specific transformation steps on the graph representation.</p>
+
+<p>Let&rsquo;s see the one of the advantages in a small example for particle simulations:</p>
+
+<pre><code>// library interface
+fn foo() {
+    for particle in particles {
+        // do calculation
+    }
+}
+
+fn boo() {
+    for particle in particles {
+        // do other calculation
+    }
+}
+
+// User code
+fn main() {
+    foo();
+    boo();
+}
+</code></pre>
+
+<p>Our library exposes two functions <code>foo</code> and <code>boo</code> operating on the same set of particles. Unfortunately, we lose the semantic of particle iteration on the API surface level. If both calculation are independent we could fuse them together into one loop. On the other hand, the proposed toy API above hides the implementation detail for the underlying platform. For CPUs we may implement the <code>for</code>-loop via parallel iterators using <code>rayon</code>.</p>
+
+<p>Via meta-staging we could override the particle <code>for</code> loop,
+generate a special graph node, apply loop fusion on the graph and emit efficient platform-specific code, without interferring with the actual library API.</p>
 
 <p>For implementation of meta-staging library, two nightly features are needed at least: procedural macros for functions and specialization.</p>
 
+<p>It has been shown that language virtualization can be also be useful for other projects like efficient SQL query builders.</p>
+
 <h3 id="conclusion">Conclusion</h3>
 
-<p>These are the building blocks/research topics for &lsquo;Rust + Computer Graphics = ❤️&rsquo; I&rsquo;m currently interested in and hopefully will be realized in the future. There are other high-priority topics like Graphical User Interfaces, but they have been discussed in other posts already and cover a larger area of fields :)</p>
+<p>These are the building blocks/research topics for &lsquo;Rust + Computer Graphics = ❤️&rsquo; I&rsquo;m currently interested in and hopefully will be realized in the future. There are other high-priority topics like Graphical User Interfaces, but they have been discussed at other places already and cover a larger area of fields :)</p>
 
   </section>
   <footer>
