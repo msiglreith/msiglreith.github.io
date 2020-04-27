@@ -41,7 +41,7 @@
         <!-- Provide site root to javascript -->
         <script type="text/javascript">
             var path_to_root = "";
-            var default_theme = window.matchMedia("(prefers-color-scheme: dark)").matches ? "ocean" : "light";
+            var default_theme = window.matchMedia("(prefers-color-scheme: dark)").matches ? "navy" : "light";
         </script>
 
         <!-- Work around some values being stored in localStorage wrapped in quotes -->
@@ -179,7 +179,7 @@ Let's analyze the issue again in detail using the figure above. The red area den
 }
 <span class="boring">}
 </span></code></pre></pre>
-<p>If we look at the pixel at left tho the story is totally different! A raycast in y-direction would yield reasonable results but in x-direction it would be around 0% as the distance would be over 0.5. To improve this we are incorporating the curve tangent on the ray intersection point, which gives an approximation of the trapezoid area coverage. See https://www.desmos.com/calculator/hg7j076glf for a plot of the where we can control the slope <code>m</code>. The green curve is the integral of the red curve which directly denotes the coverage area we are looking for. The figure <code>Exact intergral</code> shows the results when applying this approximation using the intergral:</p>
+<p>If we look at the pixel at left tho the story is totally different! A raycast in y-direction would yield reasonable results but in x-direction it would be around 0% as the distance would be over 0.5. To improve this we are incorporating the curve tangent on the ray intersection point, which gives an approximation of the trapezoid area coverage. See https://www.desmos.com/calculator/hg7j076glf for a plot of the where we can control the slope <code>m</code>. The green curve is the integral of the red curve which directly denotes the coverage area we are looking for. The figure <code>Exact intergral</code> shows the results when applying this approximation using the integral:</p>
 <pre><pre class="playpen"><code class="language-rust">
 <span class="boring">#![allow(unused_variables)]
 </span><span class="boring">fn main() {
@@ -245,21 +245,6 @@ As we target GPUs let's quickly discuss performance compared to the 1D box filte
 
         </div>
 
-        
-        <!-- Livereload script (if served using the cli tool) -->
-        <script type="text/javascript">
-            var socket = new WebSocket("ws://localhost:3001");
-            socket.onmessage = function (event) {
-                if (event.data === "reload") {
-                    socket.close();
-                    location.reload();
-                }
-            };
-
-            window.onbeforeunload = function() {
-                socket.close();
-            }
-        </script>
         
 
         
